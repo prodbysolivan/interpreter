@@ -12,6 +12,7 @@ interfaces.
 ### Dependencies
 
 - Deno 1.40 or higher
+- [@prodbysolivan/signal](https://jsr.io/@prodbysolivan/signal)
 
 ### Installing
 
