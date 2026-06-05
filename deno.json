@@ -1,6 +1,6 @@
 {
   "name": "@prodbysolivan/interpreter",
-  "description": "Type-safe framework for building robust CLI applications.",
+  "description": "Type-safe framework for building robust command-line applications.",
   "version": "1.1.0",
   "exports": "./source/index.ts",
   "publish": {
