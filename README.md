@@ -1,6 +1,6 @@
 # Interpreter
 
-Object-oriented framework for building robust and type-safe CLI applications.
+Type-safe framework for building robust command-line applications.
 
 ## Description
 
