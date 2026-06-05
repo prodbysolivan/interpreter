@@ -49,7 +49,7 @@ export class Interpreter {
 
   // #region Getters
   /** Returns the Map containing all registered commands. */
-  public get commands() {
+  public get commands(): ReadonlyMap<string, Command> {
     return this._commands;
   }
 
