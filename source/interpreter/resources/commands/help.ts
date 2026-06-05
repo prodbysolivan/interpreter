@@ -1,7 +1,15 @@
 import { Command } from "../../command.ts";
 import type { Interpreter } from "../../interpreter.ts";
 
+/**
+ * Built-in command that provides help information for the interpreter
+ * and registered commands.
+ */
 export class Help extends Command {
+  /**
+   * Initializes the help command.
+   * @param parent The parent interpreter instance.
+   */
   constructor(parent: Interpreter) {
     super({
       parent,
@@ -48,7 +56,7 @@ export class Help extends Command {
                 ` - ${arg.name} (${
                   arg.required ? "required" : "optional"
                 }): ${arg.description}`,
-              )
+              ),
             );
           }
 
@@ -59,23 +67,29 @@ export class Help extends Command {
                 ` - --${flag.name} ${
                   flag.alias ? `(-${flag.alias}) ` : ""
                 }: ${flag.description}`,
-              )
+              ),
             );
           }
 
           if (command.schema.options.length > 0) {
             console.log("\nOptions:");
-            command.schema.options.forEach((opt) =>
+            command.schema.options.forEach((opt) => {
+              const range =
+                opt.type === "number" &&
+                (opt.minimum !== undefined || opt.maximum !== undefined)
+                  ? ` [Range: ${opt.minimum ?? "-inf"} to ${opt.maximum ?? "inf"}]`
+                  : "";
+
               console.log(
                 ` - --${opt.name} ${
                   opt.alias ? `(-${opt.alias}) ` : ""
                 }[${opt.type}] (${
                   opt.required ? "required" : "optional"
-                }): ${opt.description}${
+                })${range}: ${opt.description}${
                   opt.default !== undefined ? ` (Default: ${opt.default})` : ""
                 }`,
-              )
-            );
+              );
+            });
           }
           console.log("");
         }

@@ -10,7 +10,6 @@ Deno.test("Help: Display information", async (test) => {
   interpreter.addToCommands(helpCommand);
 
   await test.step("Display general help menu", () => {
-    // Registramos un comando extra para que aparezca en la lista
     const pingCommand = new (class extends Command {
       constructor(parent: Interpreter) {
         super({ parent, name: "ping", description: "Test connectivity" });
@@ -18,21 +17,43 @@ Deno.test("Help: Display information", async (test) => {
     })(interpreter);
     interpreter.addToCommands(pingCommand);
 
-    // Ejecutamos el comando help sin argumentos
     helpCommand.run({ args: {}, flags: {}, options: {} });
   });
 
-  await test.step("Display detailed command help", () => {
-    // Ejecutamos help solicitando el comando 'ping'
+  await test.step("Display detailed command help with range validation", () => {
+    const rangeCommand = new (class extends Command {
+      constructor(parent: Interpreter) {
+        super({
+          parent,
+          name: "range-cmd",
+          description: "Cmd with range",
+          schema: {
+            arguments: [],
+            flags: [],
+            options: [
+              {
+                name: "port",
+                description: "Server port",
+                required: false,
+                type: "number",
+                minimum: 80,
+                maximum: 8080,
+              },
+            ],
+          },
+        });
+      }
+    })(interpreter);
+    interpreter.addToCommands(rangeCommand);
+
     helpCommand.run({
-      args: { commandName: "ping" },
+      args: { commandName: "range-cmd" },
       flags: {},
       options: {},
     });
   });
 
   await test.step("Handle non-existent command in help", () => {
-    // Ejecutamos help para un comando que no existe
     helpCommand.run({
       args: { commandName: "invalid" },
       flags: {},
