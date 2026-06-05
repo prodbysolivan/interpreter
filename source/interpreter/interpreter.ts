@@ -27,7 +27,6 @@ export class Interpreter {
   // #endregion
 
   // #region Lifecycle
-
   private _commands: Map<string, Command> = new Map();
   private _onRun: Signal<[CommandContext]> = new Signal();
   // #endregion
@@ -99,7 +98,7 @@ export class Interpreter {
 
   /**
    * Parses the raw input string array into a structured CommandContext.
-   * Validates number types and throws an error if parsing fails.
+   * Validates types and ranges, and throws an error if parsing fails.
    */
   public parse(input: string[], schema: CommandSchema): CommandContext {
     const context: CommandContext = { args: {}, flags: {}, options: {} };
@@ -121,6 +120,7 @@ export class Interpreter {
           context.flags[foundFlag.name] = true;
         } else if (foundOption) {
           const value = input[++i];
+
           if (foundOption.type === "number") {
             const numericValue = Number(value);
             if (isNaN(numericValue)) {
@@ -128,9 +128,32 @@ export class Interpreter {
                 `Option "${foundOption.name}" expected a number, got "${value}"`,
               );
             }
+            // Validate Range
+            if (
+              foundOption.minimum !== undefined &&
+              numericValue < foundOption.minimum
+            ) {
+              throw new Error(
+                `Option "${foundOption.name}" must be at least ${foundOption.minimum}`,
+              );
+            }
+            if (
+              foundOption.maximum !== undefined &&
+              numericValue > foundOption.maximum
+            ) {
+              throw new Error(
+                `Option "${foundOption.name}" must be no more than ${foundOption.maximum}`,
+              );
+            }
             context.options[foundOption.name] = numericValue;
           } else {
-            context.options[foundOption.name] = value;
+            // Validate String Quotes
+            if (!value.startsWith('"') || !value.endsWith('"')) {
+              throw new Error(
+                `Option "${foundOption.name}" must be wrapped in quotes (e.g., "value")`,
+              );
+            }
+            context.options[foundOption.name] = value.slice(1, -1);
           }
         } else {
           console.log(`Unexpected option or flag: "${token}".`);
@@ -155,7 +178,6 @@ export class Interpreter {
     return context;
   }
 
-  /** Validates the current context against the command's schema constraints. */
   public lint(context: CommandContext, schema: CommandSchema): string[] {
     const issues: string[] = [];
     for (const argument of schema.arguments) {
@@ -200,6 +222,7 @@ export class Interpreter {
     return matrix[a.length][b.length];
   }
 
+  /** Adds a command to the registered commands. */
   public addToCommands(command: Command) {
     if (this._commands.has(command.name)) {
       console.log(`Command "${command.name}" is already registered.`);
@@ -208,6 +231,7 @@ export class Interpreter {
     this._commands.set(command.name, command);
   }
 
+  /** Removes a command from the registered commands. */
   public removeFromCommands(command: Command) {
     if (!this._commands.has(command.name)) {
       console.log(`Command "${command.name}" is not registered.`);
@@ -216,6 +240,7 @@ export class Interpreter {
     this._commands.delete(command.name);
   }
 
+  /** Retrieves a command by name from the registered commands. */
   public getFromCommands(name: string): Command | undefined {
     return this._commands.get(name);
   }
