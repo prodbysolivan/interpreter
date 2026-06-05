@@ -27,17 +27,22 @@ deno add @prodbysolivan/interpreter
 Import the `Interpreter` or base `Command` classes into your project:
 
 ```typescript
-import { Command, Interpreter } from "@prodbysolivan/interpreter";
+import { Interpreter, Command } from "@prodbysolivan/interpreter";
 
 class GreetCommand extends Command {
-  execute(args: string[]) {
-    console.log(`Hello, ${args[0]}!`);
+  constructor(parent: Interpreter) {
+    super({ parent, name: "greet", description: "Say hello to someone" });
+
+    this.onRun.connect((context) => {
+      console.log(`Hello, ${context.args.name}!`);
+    });
   }
 }
 
-const cli = new Interpreter();
-cli.register("greet", new GreetCommand());
-cli.run(Deno.args);
+const myApp = new Interpreter({ name: "MyApp", version: "1.0.0" });
+
+myApp.addToCommands(new GreetCommand(myApp));
+myApp.run(Deno.args);
 ```
 
 ## Help
