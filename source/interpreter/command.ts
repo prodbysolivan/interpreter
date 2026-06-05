@@ -35,6 +35,10 @@ export interface Option {
   required: boolean;
   /** Expected data type of the option. */
   type: "string" | "number";
+  /** Minimum value if type is number. */
+  minimum?: number;
+  /** Maximum value if type is number. */
+  maximum?: number;
   /** A fallback value if the option is missing. */
   default?: string | number;
 }
