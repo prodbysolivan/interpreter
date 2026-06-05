@@ -27,7 +27,9 @@ export class Interpreter {
   // #endregion
 
   // #region Lifecycle
+  /** @internal */
   private _commands: Map<string, Command> = new Map();
+  /** @internal */
   private _onRun: Signal<[CommandContext]> = new Signal();
   // #endregion
 
@@ -98,7 +100,10 @@ export class Interpreter {
 
   /**
    * Parses the raw input string array into a structured CommandContext.
-   * Validates types and ranges, and throws an error if parsing fails.
+   * Validates types, mandatory quotes for strings, and numeric ranges.
+   * @param input The raw arguments from CLI.
+   * @param schema The schema to validate against.
+   * @returns A structured CommandContext.
    */
   public parse(input: string[], schema: CommandSchema): CommandContext {
     const context: CommandContext = { args: {}, flags: {}, options: {} };
@@ -128,6 +133,7 @@ export class Interpreter {
                 `Option "${foundOption.name}" expected a number, got "${value}"`,
               );
             }
+
             // Validate Range
             if (
               foundOption.minimum !== undefined &&
@@ -178,6 +184,7 @@ export class Interpreter {
     return context;
   }
 
+  /** Validates the current context against the command's schema constraints. */
   public lint(context: CommandContext, schema: CommandSchema): string[] {
     const issues: string[] = [];
     for (const argument of schema.arguments) {
@@ -193,6 +200,7 @@ export class Interpreter {
     return issues;
   }
 
+  /** @internal */
   private findClosestCommand(input: string): string | null {
     let closest = null;
     let minDistance = 3;
@@ -206,6 +214,7 @@ export class Interpreter {
     return closest;
   }
 
+  /** @internal */
   private levenshtein(a: string, b: string): number {
     const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
     for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
