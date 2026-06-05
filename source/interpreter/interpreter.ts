@@ -1,4 +1,4 @@
-import { Signal, type ReadonlySignal } from "@prodbysolivan/signal";
+import { type ReadonlySignal, Signal } from "@prodbysolivan/signal";
 import type { Command } from "./command.ts";
 import type { CommandContext, CommandSchema } from "./command.ts";
 
@@ -119,8 +119,9 @@ export class Interpreter {
           context.flags[foundFlag.name] = true;
         } else if (foundOption) {
           const value = input[++i];
-          context.options[foundOption.name] =
-            foundOption.type === "number" ? Number(value) : value;
+          context.options[foundOption.name] = foundOption.type === "number"
+            ? Number(value)
+            : value;
         } else {
           console.log(`Unexpected option or flag: "${token}".`);
         }

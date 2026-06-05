@@ -1,4 +1,4 @@
-import { Signal, type ReadonlySignal } from "@prodbysolivan/signal";
+import { type ReadonlySignal, Signal } from "@prodbysolivan/signal";
 import type { Interpreter } from "./interpreter.ts";
 
 /** Definition for a positional argument expected by a command. */
@@ -115,7 +115,7 @@ export abstract class Command {
 
   // #region Getters
   /** Returns the parent interpreter instance. */
-  public get parent() {
+  public get parent(): Interpreter {
     return this._parent;
   }
 

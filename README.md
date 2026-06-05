@@ -27,7 +27,7 @@ deno add @prodbysolivan/interpreter
 Import the `Interpreter` or base `Command` classes into your project:
 
 ```typescript
-import { Interpreter, Command } from "@prodbysolivan/interpreter";
+import { Command, Interpreter } from "@prodbysolivan/interpreter";
 
 class GreetCommand extends Command {
   constructor(parent: Interpreter) {

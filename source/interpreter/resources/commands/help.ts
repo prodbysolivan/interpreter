@@ -48,7 +48,7 @@ export class Help extends Command {
                 ` - ${arg.name} (${
                   arg.required ? "required" : "optional"
                 }): ${arg.description}`,
-              ),
+              )
             );
           }
 
@@ -59,7 +59,7 @@ export class Help extends Command {
                 ` - --${flag.name} ${
                   flag.alias ? `(-${flag.alias}) ` : ""
                 }: ${flag.description}`,
-              ),
+              )
             );
           }
 
@@ -74,7 +74,7 @@ export class Help extends Command {
                 }): ${opt.description}${
                   opt.default !== undefined ? ` (Default: ${opt.default})` : ""
                 }`,
-              ),
+              )
             );
           }
           console.log("");
