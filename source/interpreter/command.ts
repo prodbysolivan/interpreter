@@ -50,13 +50,13 @@ export interface CommandSchema {
 }
 
 /** The context object containing parsed inputs passed to commands during execution. */
-export interface CommandContext {
+export interface CommandContext<T = Record<string, string | number>> {
   /** Mapped positional arguments. */
   args: Record<string, string>;
   /** Mapped boolean flags. */
   flags: Record<string, boolean>;
   /** Mapped options and their values. */
-  options: Record<string, string | number>;
+  options: T;
 }
 
 /** Configuration settings required to initialize a new command instance. */
@@ -73,17 +73,9 @@ export interface CommandSettings {
 
 /**
  * Abstract base class for creating CLI commands.
- * * @example
- * ```ts
- * class GreetCommand extends Command {
- * constructor(parent: Interpreter) {
- * super({ parent, name: "greet", description: "Say hello" });
- * this.onRun.connect((ctx) => console.log("Hello!"));
- * }
- * }
- * ```
+ * @template T The interface defining the structure of the command options.
  */
-export abstract class Command {
+export abstract class Command<T = Record<string, string | number>> {
   // #region Metadata
   /** The unique name of the command. */
   public readonly name: string;
@@ -95,7 +87,7 @@ export abstract class Command {
 
   // #region Lifecycle
   private _parent: Interpreter;
-  private _onRun: Signal<[CommandContext]> = new Signal();
+  private _onRun: Signal<[CommandContext<T>]> = new Signal();
   // #endregion
 
   /**
@@ -122,7 +114,7 @@ export abstract class Command {
   /** * A read-only signal that triggers when the command is executed.
    * Connect to this signal to define the command's logic.
    */
-  public get onRun(): ReadonlySignal<[CommandContext]> {
+  public get onRun(): ReadonlySignal<[CommandContext<T>]> {
     return this._onRun.asReadonly();
   }
   // #endregion
@@ -131,7 +123,7 @@ export abstract class Command {
   /** * Executes the command logic.
    * @param context The parsed arguments, flags, and options.
    */
-  public run(context: CommandContext) {
+  public run(context: CommandContext<T>) {
     this._onRun.fire(context);
   }
   // #endregion
