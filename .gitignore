@@ -1,0 +1,15 @@
+# Deno
+.deno/
+deno.lock
+docs/
+
+# Build
+build/
+
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
