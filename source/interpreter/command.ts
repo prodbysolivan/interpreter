@@ -79,7 +79,7 @@ export interface CommandSettings {
  * Abstract base class for creating CLI commands.
  * @template T The interface defining the structure of the command options.
  */
-export abstract class Command<T = Record<string, string | number>> {
+export class Command<T = Record<string, string | number>> {
   // #region Metadata
   /** The unique name of the command. */
   public readonly name: string;
