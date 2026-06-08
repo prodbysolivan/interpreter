@@ -4,7 +4,7 @@ Type-safe library for building robust command-line applications.
 
 ## Description
 
-A modular  framework built with TypeScript. It provides a structured
+A modular command-line library built for TypeScript. It provides a structured
 architecture to define commands, manage subcommands, and handle arguments
 with strict typing, enabling developers to build scalable command-line
 interfaces.
