@@ -1,11 +1,11 @@
 # Interpreter
 
-Type-safe framework for building robust command-line applications.
+Type-safe library for building robust command-line applications.
 
 ## Description
 
-A modular, full OOP framework built with TypeScript. It provides a structured
-architecture to define commands, manage subcommands, and handle CLI arguments
+A modular  framework built with TypeScript. It provides a structured
+architecture to define commands, manage subcommands, and handle arguments
 with strict typing, enabling developers to build scalable command-line
 interfaces.
 
