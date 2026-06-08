@@ -16,8 +16,7 @@ interfaces.
 
 ### Installing
 
-Add the package to your project directly via JSR or by importing the source
-files:
+Add the package to your project directly via JSR:
 
 ```bash
 deno add @prodbysolivan/interpreter
