@@ -68,5 +68,5 @@ details.
 
 ## Acknowledgments
 
-- [Deno Documentation](https://www.google.com/search?q=https%3A%2F%2Fdocs.deno.com%2F)
-- [TypeScript Handbook](https://www.google.com/search?q=https%3A%2F%2Fwww.typescriptlang.org%2Fdocs%2F)
+- [Deno Documentation](https://docs.deno.com/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
