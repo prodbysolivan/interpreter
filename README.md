@@ -29,18 +29,23 @@ Import the `Interpreter` or base `Command` classes into your project:
 ```typescript
 import { Command, Interpreter } from "@prodbysolivan/interpreter";
 
+// Define a new command by extending the base Command class
 class GreetCommand extends Command {
   constructor(parent: Interpreter) {
+    // Register the command name and description with the parent interpreter
     super({ parent, name: "greet", description: "Say hello to someone" });
 
+    // Define the logic to execute when the command is triggered
     this.onRun.connect((context) => {
       console.log(`Hello, ${context.args.name}!`);
     });
   }
 }
 
+// Initialize the application interpreter
 const myApp = new Interpreter({ name: "MyApp", version: "1.0.0" });
 
+// Register the command and execute the interpreter with CLI arguments
 myApp.addToCommands(new GreetCommand(myApp));
 myApp.run(Deno.args);
 ```
