@@ -1,5 +1,7 @@
 import { type ReadonlySignal, Signal } from "@prodbysolivan/signal";
 import type { Interpreter } from "./interpreter.ts";
+import { type Result, failure, success } from "@prodbysolivan/result";
+import { match } from "@prodbysolivan/match";
 
 /** Definition for a positional argument expected by a command. */
 export interface CommandArgument {
@@ -16,7 +18,7 @@ export interface CommandFlag {
   /** A short single-letter alias (e.g., "v"). */
   alias?: string;
   /** Description of the flag's purpose. */
-  description: string;
+  description?: string;
 }
 
 /** Definition for an option that accepts a value (e.g., --port 8080). */
@@ -26,7 +28,7 @@ export interface CommandOption {
   /** A short alias. */
   alias?: string;
   /** Description of the option. */
-  description: string;
+  description?: string;
   /** Whether the option is mandatory. */
   required?: boolean;
   /** Expected amount of values */
@@ -101,6 +103,16 @@ export class Command<
     this._parent = settings.parent;
     this.name = settings.name;
     this.description = settings.description ?? "No description provided.";
+
+    if (settings.schema) {
+      match(this.validateSchema(settings.schema))
+        .with("Failure", (failure) => {
+          throw failure.error;
+        })
+        .with("Success", () => {})
+        .run();
+    }
+
     this.schema = settings.schema ?? {
       arguments: [],
       flags: [],
@@ -128,6 +140,33 @@ export class Command<
    */
   public run(context: CommandContext<Options>) {
     this._onRun.fire(context);
+  }
+
+  private validateSchema(schema: CommandSchema): Result<void, Error> {
+    const names = new Set<string>();
+    const aliases = new Set<string>();
+
+    const allItems = [...schema.arguments, ...schema.flags, ...schema.options];
+
+    for (const item of allItems) {
+      if (names.has(item.name)) {
+        return failure(
+          new Error(`Duplicate identifier found in schema: "${item.name}"`),
+        );
+      }
+      names.add(item.name);
+    }
+
+    for (const item of [...schema.flags, ...schema.options]) {
+      if (item.alias) {
+        if (aliases.has(item.alias)) {
+          return failure(new Error(`Duplicate alias found: "${item.alias}"`));
+        }
+        aliases.add(item.alias);
+      }
+    }
+
+    return success(void 0);
   }
   // #endregion
 }
