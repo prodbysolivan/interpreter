@@ -9,37 +9,40 @@ export class Help extends Command {
       name: "help",
       description: "Display help information",
       schema: {
-        arguments: [
+        arguments: [],
+        flags: [],
+        options: [
           {
-            name: "commandName",
+            name: "command",
+            alias: "c",
             description: "Name of the command to inspect",
+            type: "string",
+            limit: 1,
+            required: false,
           },
         ],
-        flags: [],
-        options: [],
       },
     });
 
     this.onRun.connect((context) => {
-      const commandName = context.args.commandName as string | undefined;
+      const commandName = context.options.command as string | undefined;
       const interpreter = this.parent;
 
       if (!commandName) {
-        console.log(`\nUsage: ${interpreter.name} <command> [arguments]\n`);
         console.log("Available commands:");
         for (const [name, command] of interpreter.commands) {
           console.log(` - ${name}: ${command.description}`);
         }
         console.log(
-          "\nType 'help <command>' to see detailed information about a specific command.\n",
+          "\nType 'help --command <command>' or 'help -c <command>' to see detailed information.\n",
         );
       } else {
         match(interpreter.getFromCommands(commandName))
           .with("None", () => {
             console.log(`Error: Command '${commandName}' not found.`);
           })
-          .with("Some", (opt) => {
-            const command = opt.value;
+          .with("Some", (option) => {
+            const command = option.value;
             console.log(`\nCommand: ${command.name}`);
             console.log(`Description: ${command.description}`);
 
