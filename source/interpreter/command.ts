@@ -69,14 +69,14 @@ export interface CommandSettings {
   parent: Interpreter;
   /** The command's trigger name. */
   name: string;
-  /** A brief description for help menus. */
+  /** A description for the command */
   description?: string;
   /** The schema defining valid inputs. */
   schema?: CommandSchema;
 }
 
 /**
- * Abstract base class for creating CLI commands.
+ * Abstract base class for creating command-line commands.
  * @template Options The interface defining the structure of the command options.
  */
 export class Command<
