@@ -187,16 +187,22 @@ export class Interpreter {
   /** Validates the current context against the command's schema constraints. */
   public lint(context: CommandContext, schema: CommandSchema): string[] {
     const issues: string[] = [];
+
     for (const argument of schema.arguments) {
-      if (argument.required && !context.args[argument.name]) {
-        issues.push(`${argument.name}: ${argument.description}`);
+      if (context.args[argument.name] === undefined) {
+        issues.push(`Falta el argumento requerido: ${argument.name}`);
       }
     }
+
     for (const option of schema.options) {
-      if (option.required && context.options[option.name] === undefined) {
-        issues.push(`${option.name}: ${option.description}`);
+      if (
+        option.required === true &&
+        context.options[option.name] === undefined
+      ) {
+        issues.push(`Falta la opción requerida: ${option.name}`);
       }
     }
+
     return issues;
   }
 
