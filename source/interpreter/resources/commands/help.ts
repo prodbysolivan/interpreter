@@ -1,15 +1,7 @@
 import { Command } from "../../command.ts";
 import type { Interpreter } from "../../interpreter.ts";
 
-/**
- * Built-in command that provides help information for the interpreter
- * and registered commands.
- */
 export class Help extends Command {
-  /**
-   * Initializes the help command.
-   * @param parent The parent interpreter instance.
-   */
   constructor(parent: Interpreter) {
     super({
       parent,
@@ -20,7 +12,6 @@ export class Help extends Command {
           {
             name: "commandName",
             description: "Name of the command to inspect",
-            required: false,
           },
         ],
         flags: [],
@@ -52,11 +43,7 @@ export class Help extends Command {
           if (command.schema.arguments.length > 0) {
             console.log("\nArguments:");
             command.schema.arguments.forEach((arg) =>
-              console.log(
-                ` - ${arg.name} (${
-                  arg.required ? "required" : "optional"
-                }): ${arg.description}`,
-              ),
+              console.log(` - ${arg.name}: ${arg.description}`),
             );
           }
 
