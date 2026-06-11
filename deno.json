@@ -12,6 +12,7 @@
     "clean": "rm -rf build"
   },
   "imports": {
+    "@prodbysolivan/match": "jsr:@prodbysolivan/match@^2.0.0",
     "@prodbysolivan/option": "jsr:@prodbysolivan/option@^1.0.0",
     "@prodbysolivan/result": "jsr:@prodbysolivan/result@^1.0.0",
     "@prodbysolivan/signal": "jsr:@prodbysolivan/signal@^1.3.0",
