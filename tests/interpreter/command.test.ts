@@ -1,9 +1,8 @@
 import { assertEquals } from "@std/assert";
-import { Interpreter } from "../../source/index.ts";
-import { Command } from "../../source/index.ts";
+import { Command, Interpreter } from "../../source/index.ts";
 
 Deno.test("Command: Lifecycle and Signal", async () => {
-  const interpreter = new Interpreter({ name: "CLI" });
+  const interpreter = new Interpreter();
 
   const testCommand = new (class extends Command {
     constructor(parent: Interpreter) {
@@ -23,7 +22,7 @@ Deno.test("Command: Lifecycle and Signal", async () => {
   let runCount = 0;
   testCommand.onRun.connect(() => runCount++);
 
-  testCommand.run({ args: {}, flags: {}, options: {} });
+  testCommand.run({ arguments: {}, flags: {}, options: {} });
   await new Promise((resolve) => setTimeout(resolve, 0));
   assertEquals(runCount, 1);
 });

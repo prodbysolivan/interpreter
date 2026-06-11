@@ -1,11 +1,9 @@
-import { Interpreter } from "../../../source/index.ts";
-import { Command } from "../../../source/index.ts";
-import { Help } from "../../../source/index.ts";
+import { Command, Help, Interpreter } from "../../../source/index.ts";
 
 console.log = () => {};
 
 Deno.test("Help: Display information", async (test) => {
-  const interpreter = new Interpreter({ name: "CLI" });
+  const interpreter = new Interpreter();
   const helpCommand = new Help(interpreter);
   interpreter.addToCommands(helpCommand);
 
@@ -17,7 +15,7 @@ Deno.test("Help: Display information", async (test) => {
     })(interpreter);
     interpreter.addToCommands(pingCommand);
 
-    helpCommand.run({ args: {}, flags: {}, options: {} });
+    helpCommand.run({ arguments: {}, flags: {}, options: {} });
   });
 
   await test.step("Display detailed command help with range validation", () => {
@@ -47,7 +45,7 @@ Deno.test("Help: Display information", async (test) => {
     interpreter.addToCommands(rangeCommand);
 
     helpCommand.run({
-      args: { commandName: "range-cmd" },
+      arguments: { commandName: "range-cmd" },
       flags: {},
       options: {},
     });
@@ -55,7 +53,7 @@ Deno.test("Help: Display information", async (test) => {
 
   await test.step("Handle non-existent command in help", () => {
     helpCommand.run({
-      args: { commandName: "invalid" },
+      arguments: { commandName: "invalid" },
       flags: {},
       options: {},
     });
