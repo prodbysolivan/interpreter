@@ -5,14 +5,16 @@ Type-safe library for building robust command-line applications.
 ## Description
 
 A modular command-line library built for TypeScript. It provides a structured
-architecture to define commands, manage subcommands, and handle arguments
-with strict typing, enabling developers to build scalable command-line
-interfaces.
+architecture to define commands, manage subcommands, and handle arguments with
+strict typing, enabling developers to build scalable command-line interfaces.
 
 ### Dependencies
 
 - Deno 1.40 or higher
 - [@prodbysolivan/signal](https://jsr.io/@prodbysolivan/signal)
+- [@prodbysolivan/match](https://jsr.io/@prodbysolivan/match)
+- [@prodbysolivan/result](https://jsr.io/@prodbysolivan/result)
+- [@prodbysolivan/option](https://jsr.io/@prodbysolivan/option)
 
 ### Installing
 
