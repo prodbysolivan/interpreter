@@ -8,7 +8,7 @@ export interface CommandArgument {
   /** The name of the argument. */
   name: string;
   /** Description of what the argument represents. */
-  description: string;
+  description?: string;
 }
 
 /** Definition for a boolean flag (e.g., --verbose or -v). */
@@ -69,7 +69,7 @@ export interface CommandSettings {
   parent: Interpreter;
   /** The command's trigger name. */
   name: string;
-  /** A description for the command */
+  /** The description for the command */
   description?: string;
   /** The schema defining valid inputs. */
   schema?: CommandSchema;
