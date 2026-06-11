@@ -1,6 +1,6 @@
-import { Interpreter } from "../../../source/interpreter/interpreter.ts";
-import { Command } from "../../../source/interpreter/command.ts";
-import { Help } from "../../../source/interpreter/resources/commands/help.ts";
+import { Interpreter } from "../../../source/index.ts";
+import { Command } from "../../../source/index.ts";
+import { Help } from "../../../source/index.ts";
 
 console.log = () => {};
 

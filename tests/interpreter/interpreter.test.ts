@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
-import { Interpreter } from "../../source/interpreter/interpreter.ts";
-import { Command } from "../../source/interpreter/command.ts";
+import { Interpreter } from "../../source/index.ts";
+import { Command } from "../../source/index.ts";
 
 console.log = () => {};
 
