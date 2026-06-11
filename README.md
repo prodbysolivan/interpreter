@@ -39,17 +39,17 @@ class GreetCommand extends Command {
 
     // Define the logic to execute when the command is triggered
     this.onRun.connect((context) => {
-      console.log(`Hello, ${context.args.name}!`);
+      console.log(`Hello, ${context.arguments.name}!`);
     });
   }
 }
 
 // Initialize the application interpreter
-const myApp = new Interpreter({ name: "MyApp", version: "1.0.0" });
+const myInterpreter = new Interpreter();
 
 // Register the command and execute the interpreter with CLI arguments
-myApp.addToCommands(new GreetCommand(myApp));
-myApp.run(Deno.args);
+myInterpreter.addToCommands(new GreetCommand(myApp));
+myInterpreter.run(Deno.args);
 ```
 
 ## Help
