@@ -43,7 +43,7 @@ export class Help extends Command {
           if (command.schema.arguments.length > 0) {
             console.log("\nArguments:");
             command.schema.arguments.forEach((arg) =>
-              console.log(` - ${arg.name}: ${arg.description}`),
+              console.log(` - ${arg.name}: ${arg.description}`)
             );
           }
 
@@ -54,18 +54,19 @@ export class Help extends Command {
                 ` - --${flag.name} ${
                   flag.alias ? `(-${flag.alias}) ` : ""
                 }: ${flag.description}`,
-              ),
+              )
             );
           }
 
           if (command.schema.options.length > 0) {
             console.log("\nOptions:");
             command.schema.options.forEach((opt) => {
-              const range =
-                opt.type === "number" &&
-                (opt.minimum !== undefined || opt.maximum !== undefined)
-                  ? ` [Range: ${opt.minimum ?? "-inf"} to ${opt.maximum ?? "inf"}]`
-                  : "";
+              const range = opt.type === "number" &&
+                  (opt.minimum !== undefined || opt.maximum !== undefined)
+                ? ` [Range: ${opt.minimum ?? "-inf"} to ${
+                  opt.maximum ?? "inf"
+                }]`
+                : "";
 
               console.log(
                 ` - --${opt.name} ${
