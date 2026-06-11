@@ -1,6 +1,6 @@
 import { type ReadonlySignal, Signal } from "@prodbysolivan/signal";
 import type { Interpreter } from "./interpreter.ts";
-import { type Result, failure, success } from "@prodbysolivan/result";
+import { failure, type Result, success } from "@prodbysolivan/result";
 import { match } from "@prodbysolivan/match";
 
 /** Definition for a positional argument expected by a command. */
@@ -58,7 +58,7 @@ export interface CommandContext<
   Options = Record<string, string | number | (string | number)[]>,
 > {
   /** Mapped positional arguments. */
-  args: Record<string, string>;
+  arguments: Record<string, string>;
   /** Mapped boolean flags. */
   flags: Record<string, boolean>;
   /** Mapped options and their values. */
