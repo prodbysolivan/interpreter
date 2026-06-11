@@ -40,7 +40,6 @@ Deno.test("Interpreter: Input Parsing", async (test) => {
               {
                 name: "target",
                 description: "target argument",
-                required: true,
               },
             ],
             flags: [
@@ -48,7 +47,6 @@ Deno.test("Interpreter: Input Parsing", async (test) => {
                 name: "verbose",
                 alias: "v",
                 description: "verbose flag",
-                required: false,
               },
             ],
             options: [
@@ -131,9 +129,7 @@ Deno.test("Interpreter: Execution Edge Cases", async (test) => {
           parent,
           name: "fail",
           schema: {
-            arguments: [
-              { name: "argument", description: "arg", required: true },
-            ],
+            arguments: [{ name: "argument", description: "arg" }],
             flags: [],
             options: [],
           },
