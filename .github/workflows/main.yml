@@ -14,5 +14,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v1.x
+      - name: Run Tests
+        run: deno test --allow-all
       - name: Publish to JSR
         run: deno publish
