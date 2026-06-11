@@ -1,7 +1,4 @@
-export {
-  Interpreter,
-  type InterpreterSettings,
-} from "./interpreter/interpreter.ts";
+export { Interpreter } from "./interpreter/interpreter.ts";
 export {
   Command,
   type CommandArgument,
