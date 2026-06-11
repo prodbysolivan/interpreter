@@ -3,12 +3,12 @@ export {
   type InterpreterSettings,
 } from "./interpreter/interpreter.ts";
 export {
-  type Argument,
   Command,
+  type CommandArgument,
   type CommandContext,
+  type CommandFlag,
+  type CommandOption,
   type CommandSchema,
   type CommandSettings,
-  type Flag,
-  type Option,
 } from "./interpreter/command.ts";
 export { Help } from "./interpreter/resources/commands/help.ts";
