@@ -18,11 +18,8 @@ export interface InterpreterSettings {
  */
 export class Interpreter {
   // #region Metadata
-  /** The name of the interpreter. */
   public readonly name: string = "Unnamed Interpreter";
-  /** A description of the interpreter. */
   public readonly description: string = "No description provided.";
-  /** The version string of the interpreter. */
   public readonly version: string = "Unknown";
   // #endregion
 
@@ -35,23 +32,18 @@ export class Interpreter {
 
   /**
    * Initializes a new Interpreter instance.
-   * @param settings Configuration settings for the interpreter.
    */
-  constructor(settings: InterpreterSettings) {
+  public constructor(settings: InterpreterSettings) {
     this.name = settings.name ?? this.name;
     this.description = settings.description ?? this.description;
     this.version = settings.version ?? this.version;
   }
 
   // #region Getters
-  /** Returns the Map containing all registered commands. */
   public get commands(): ReadonlyMap<string, Command> {
     return this._commands;
   }
 
-  /**
-   * Signal emitted when the interpreter is run without any command arguments.
-   */
   public get onRun(): ReadonlySignal<[CommandContext]> {
     return this._onRun.asReadonly();
   }
@@ -60,7 +52,6 @@ export class Interpreter {
   // #region Methods
   /**
    * Parses and executes a command based on the provided input array.
-   * @param input An array of strings representing command-line arguments.
    */
   public run(input: string[]): void {
     if (input.length === 0) {
@@ -74,9 +65,7 @@ export class Interpreter {
     if (!command) {
       console.log(`Command "${commandName}" is not recognized.`);
       const suggestion = this.findClosestCommand(commandName);
-      if (suggestion) {
-        console.log(`Did you mean "${suggestion}"?`);
-      }
+      if (suggestion) console.log(`Did you mean "${suggestion}"?`);
       return;
     }
 
@@ -89,21 +78,14 @@ export class Interpreter {
         issues.forEach((issue) => console.log(` - ${issue}`));
         return;
       }
-
       command.run(context);
     } catch (error) {
-      if (error instanceof Error) {
-        console.log(`Error: ${error.message}`);
-      }
+      if (error instanceof Error) console.log(`Error: ${error.message}`);
     }
   }
 
   /**
-   * Parses the raw input string array into a structured CommandContext.
-   * Validates types, mandatory quotes for strings, and numeric ranges.
-   * @param input The raw arguments from CLI.
-   * @param schema The schema to validate against.
-   * @returns A structured CommandContext.
+   * Parses raw input into a structured CommandContext.
    */
   public parse(input: string[], schema: CommandSchema): CommandContext {
     const context: CommandContext = { args: {}, flags: {}, options: {} };
@@ -124,51 +106,63 @@ export class Interpreter {
         if (foundFlag) {
           context.flags[foundFlag.name] = true;
         } else if (foundOption) {
-          const value = input[++i];
-
-          if (foundOption.type === "number") {
-            const numericValue = Number(value);
-            if (isNaN(numericValue)) {
-              throw new Error(
-                `Option "${foundOption.name}" expected a number, got "${value}"`,
-              );
-            }
-
-            // Validate Range
-            if (
-              foundOption.minimum !== undefined &&
-              numericValue < foundOption.minimum
-            ) {
-              throw new Error(
-                `Option "${foundOption.name}" must be at least ${foundOption.minimum}`,
-              );
-            }
-            if (
-              foundOption.maximum !== undefined &&
-              numericValue > foundOption.maximum
-            ) {
-              throw new Error(
-                `Option "${foundOption.name}" must be no more than ${foundOption.maximum}`,
-              );
-            }
-            context.options[foundOption.name] = numericValue;
-          } else {
-            // Validate String Quotes
-            if (!value.startsWith('"') || !value.endsWith('"')) {
-              throw new Error(
-                `Option "${foundOption.name}" must be wrapped in quotes (e.g., "value")`,
-              );
-            }
-            context.options[foundOption.name] = value.slice(1, -1);
+          const rawValue = input[++i];
+          if (rawValue === undefined) {
+            throw new Error(`Option "${foundOption.name}" requires a value.`);
           }
-        } else {
-          console.log(`Unexpected option or flag: "${token}".`);
+
+          const cleanValue = rawValue.startsWith('"') && rawValue.endsWith('"')
+            ? rawValue.slice(1, -1)
+            : rawValue;
+          const parts = cleanValue.split(",");
+
+          if (
+            foundOption.limit &&
+            foundOption.limit > 0 &&
+            parts.length > foundOption.limit
+          ) {
+            throw new Error(
+              `Option "${foundOption.name}" allows a maximum of ${foundOption.limit} values.`,
+            );
+          }
+
+          const processedValues = parts.map((part) => {
+            if (foundOption.type === "number") {
+              const num = Number(part);
+              if (isNaN(num)) {
+                throw new Error(
+                  `Option "${foundOption.name}" expected a number, got "${part}"`,
+                );
+              }
+              if (
+                foundOption.minimum !== undefined &&
+                num < foundOption.minimum
+              ) {
+                throw new Error(
+                  `Option "${foundOption.name}" must be at least ${foundOption.minimum}`,
+                );
+              }
+              if (
+                foundOption.maximum !== undefined &&
+                num > foundOption.maximum
+              ) {
+                throw new Error(
+                  `Option "${foundOption.name}" must be no more than ${foundOption.maximum}`,
+                );
+              }
+              return num;
+            }
+            return part;
+          });
+
+          const limit = foundOption.limit ?? 1;
+          context.options[foundOption.name] = limit === 1
+            ? processedValues[0]
+            : processedValues;
         }
       } else if (argumentIndex < schema.arguments.length) {
         context.args[schema.arguments[argumentIndex].name] = token;
         argumentIndex++;
-      } else {
-        console.log(`Unexpected argument: "${token}".`);
       }
     }
 
@@ -184,29 +178,47 @@ export class Interpreter {
     return context;
   }
 
-  /** Validates the current context against the command's schema constraints. */
+  /** Validates context against schema constraints. */
   public lint(context: CommandContext, schema: CommandSchema): string[] {
     const issues: string[] = [];
-
     for (const argument of schema.arguments) {
       if (context.args[argument.name] === undefined) {
-        issues.push(`Falta el argumento requerido: ${argument.name}`);
+        issues.push(`Missing required argument: ${argument.name}`);
       }
     }
-
     for (const option of schema.options) {
-      if (
-        option.required === true &&
-        context.options[option.name] === undefined
-      ) {
-        issues.push(`Falta la opción requerida: ${option.name}`);
+      const value = context.options[option.name];
+      if (option.required && value === undefined) {
+        issues.push(`Missing required option: --${option.name}`);
+        continue;
+      }
+      if (value !== undefined) {
+        const values = Array.isArray(value) ? value : [value];
+        for (const v of values) {
+          if (option.type === "number") {
+            if (
+              option.minimum !== undefined &&
+              (v as number) < option.minimum
+            ) {
+              issues.push(
+                `Option --${option.name} must be >= ${option.minimum}`,
+              );
+            }
+            if (
+              option.maximum !== undefined &&
+              (v as number) > option.maximum
+            ) {
+              issues.push(
+                `Option --${option.name} must be <= ${option.maximum}`,
+              );
+            }
+          }
+        }
       }
     }
-
     return issues;
   }
 
-  /** @internal */
   private findClosestCommand(input: string): string | null {
     let closest = null;
     let minDistance = 3;
@@ -220,7 +232,6 @@ export class Interpreter {
     return closest;
   }
 
-  /** @internal */
   private levenshtein(a: string, b: string): number {
     const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
     for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
@@ -237,27 +248,17 @@ export class Interpreter {
     return matrix[a.length][b.length];
   }
 
-  /** Adds a command to the registered commands. */
   public addToCommands(command: Command) {
-    if (this._commands.has(command.name)) {
-      console.log(`Command "${command.name}" is already registered.`);
-      return;
+    if (!this._commands.has(command.name)) {
+      this._commands.set(command.name, command);
     }
-    this._commands.set(command.name, command);
   }
 
-  /** Removes a command from the registered commands. */
   public removeFromCommands(command: Command) {
-    if (!this._commands.has(command.name)) {
-      console.log(`Command "${command.name}" is not registered.`);
-      return;
-    }
     this._commands.delete(command.name);
   }
 
-  /** Retrieves a command by name from the registered commands. */
   public getFromCommands(name: string): Command | undefined {
     return this._commands.get(name);
   }
-  // #endregion
 }
