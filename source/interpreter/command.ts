@@ -29,9 +29,9 @@ export interface CommandOption {
   alias?: string;
   /** Description of the option. */
   description?: string;
-  /** Whether the option is mandatory. */
+  /** Whether the option is obligatory. */
   required?: boolean;
-  /** Expected amount of values */
+  /** Expected maximum amount of values */
   limit?: number;
   /** Expected data type of the option. */
   type: "string" | "number";
@@ -54,15 +54,13 @@ export interface CommandSchema {
 }
 
 /** The context object containing parsed inputs passed to commands during execution. */
-export interface CommandContext<
-  Options = Record<string, string | number | (string | number)[]>,
-> {
+export interface CommandContext {
   /** Mapped positional arguments. */
   arguments: Record<string, string>;
   /** Mapped boolean flags. */
   flags: Record<string, boolean>;
   /** Mapped options and their values. */
-  options: Options;
+  options: Record<string, string | number | (string | number)[]>;
 }
 
 /** Configuration settings required to initialize a new command instance. */
@@ -78,12 +76,10 @@ export interface CommandSettings {
 }
 
 /**
- * Abstract base class for creating command-line commands.
+ * Class for creating interpreter commands.
  * @template Options The interface defining the structure of the command options.
  */
-export class Command<
-  Options = Record<string, string | number | (string | number)[]>,
-> {
+export class Command {
   // #region Metadata
   public readonly name: string;
   public readonly description: string;
@@ -92,7 +88,7 @@ export class Command<
 
   // #region Lifecycle
   private _parent: Interpreter;
-  private _onRun: Signal<[CommandContext<Options>]> = new Signal();
+  private _onRun: Signal<[CommandContext]> = new Signal();
   // #endregion
 
   /**
@@ -129,7 +125,7 @@ export class Command<
   /** * A read-only signal that triggers when the command is executed.
    * Connect to this signal to define the command's logic.
    */
-  public get onRun(): ReadonlySignal<[CommandContext<Options>]> {
+  public get onRun(): ReadonlySignal<[CommandContext]> {
     return this._onRun.asReadonly();
   }
   // #endregion
@@ -138,7 +134,7 @@ export class Command<
   /** * Executes the command logic.
    * @param context The parsed arguments, flags, and options.
    */
-  public run(context: CommandContext<Options>) {
+  public run(context: CommandContext) {
     this._onRun.fire(context);
   }
 
