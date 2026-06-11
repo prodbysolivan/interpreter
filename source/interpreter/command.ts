@@ -5,29 +5,29 @@ import { match } from "@prodbysolivan/match";
 
 /** Definition for a positional argument expected by a command. */
 export interface CommandArgument {
-  /** The name of the argument. */
+  /** Name of the argument. */
   name: string;
-  /** Description of what the argument represents. */
+  /** Description of the argument's purpose. */
   description?: string;
 }
 
-/** Definition for a boolean flag (e.g., --verbose or -v). */
+/** Definition for a boolean flag */
 export interface CommandFlag {
-  /** The flag name (e.g., "verbose"). */
+  /** Name of the flag. */
   name: string;
-  /** A short single-letter alias (e.g., "v"). */
+  /** A short alias. */
   alias?: string;
   /** Description of the flag's purpose. */
   description?: string;
 }
 
-/** Definition for an option that accepts a value (e.g., --port 8080). */
+/** Definition for an option that accepts a value. */
 export interface CommandOption {
-  /** The option name. */
+  /** Option name. */
   name: string;
   /** A short alias. */
   alias?: string;
-  /** Description of the option. */
+  /** Description of the option's purpose. */
   description?: string;
   /** Whether the option is obligatory. */
   required?: boolean;
@@ -65,13 +65,13 @@ export interface CommandContext {
 
 /** Configuration settings required to initialize a new command instance. */
 export interface CommandSettings {
-  /** The parent interpreter instance. */
+  /** Parent interpreter instance. */
   parent: Interpreter;
-  /** The command's trigger name. */
+  /** Command's trigger name. */
   name: string;
-  /** The description for the command */
+  /** Description for the command. */
   description?: string;
-  /** The schema defining valid inputs. */
+  /** Schema defining valid inputs. */
   schema?: CommandSchema;
 }
 
@@ -81,13 +81,21 @@ export interface CommandSettings {
  */
 export class Command {
   // #region Metadata
+  /** Command's trigger name. */
   public readonly name: string;
+  /** Description for the command. */
   public readonly description: string;
+  /** Schema defining valid inputs. */
   public readonly schema: CommandSchema;
   // #endregion
 
   // #region Lifecycle
+  /** Parent interpreter instance. */
   private _parent: Interpreter;
+  // #endregion
+
+  // #region Signals
+  /** Signal for execution command lifecycle. */
   private _onRun: Signal<[CommandContext]> = new Signal();
   // #endregion
 
@@ -117,14 +125,12 @@ export class Command {
   }
 
   // #region Getters
-  /** Returns the parent interpreter instance. */
+  /** Returns parent interpreter instance. */
   public get parent(): Interpreter {
     return this._parent;
   }
 
-  /** * A read-only signal that triggers when the command is executed.
-   * Connect to this signal to define the command's logic.
-   */
+  /** Returns a Readonly Signal for _onRun internal signal. */
   public get onRun(): ReadonlySignal<[CommandContext]> {
     return this._onRun.asReadonly();
   }
@@ -134,10 +140,15 @@ export class Command {
   /** * Executes the command logic.
    * @param context The parsed arguments, flags, and options.
    */
-  public run(context: CommandContext) {
+  public run(context: CommandContext): void {
     this._onRun.fire(context);
   }
 
+  /**
+   * Validates that the schema has no duplicate identifiers or aliases.
+   * @param schema Schema defining valid inputs.
+   * @returns A Result indicating success or failure containing a validation Error.
+   */
   private validateSchema(schema: CommandSchema): Result<void, Error> {
     const names = new Set<string>();
     const aliases = new Set<string>();
@@ -147,7 +158,7 @@ export class Command {
     for (const item of allItems) {
       if (names.has(item.name)) {
         return failure(
-          new Error(`Duplicate identifier found in schema: "${item.name}"`),
+          new Error(`Duplicated identifier found in schema: "${item.name}"`),
         );
       }
       names.add(item.name);
@@ -156,7 +167,7 @@ export class Command {
     for (const item of [...schema.flags, ...schema.options]) {
       if (item.alias) {
         if (aliases.has(item.alias)) {
-          return failure(new Error(`Duplicate alias found: "${item.alias}"`));
+          return failure(new Error(`Duplicated alias found: "${item.alias}"`));
         }
         aliases.add(item.alias);
       }
