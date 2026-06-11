@@ -1,45 +1,31 @@
 import { type ReadonlySignal, Signal } from "@prodbysolivan/signal";
+import { failure, type Result, success } from "@prodbysolivan/result";
+import { none, type Option, some } from "@prodbysolivan/option";
+import { match } from "@prodbysolivan/match";
 import type { Command } from "./command.ts";
 import type { CommandContext, CommandSchema } from "./command.ts";
+import console from "node:console";
 
-/** Settings for initializing the Interpreter. */
 export interface InterpreterSettings {
-  /** The name of your application. */
   name?: string;
-  /** A brief description of the application. */
   description?: string;
-  /** The version of the application. */
   version?: string;
 }
 
-/**
- * The core engine that processes command-line input and delegates execution
- * to registered commands.
- */
 export class Interpreter {
-  // #region Metadata
   public readonly name: string = "Unnamed Interpreter";
   public readonly description: string = "No description provided.";
   public readonly version: string = "Unknown";
-  // #endregion
 
-  // #region Lifecycle
-  /** @internal */
   private _commands: Map<string, Command> = new Map();
-  /** @internal */
   private _onRun: Signal<[CommandContext]> = new Signal();
-  // #endregion
 
-  /**
-   * Initializes a new Interpreter instance.
-   */
   public constructor(settings: InterpreterSettings) {
     this.name = settings.name ?? this.name;
     this.description = settings.description ?? this.description;
     this.version = settings.version ?? this.version;
   }
 
-  // #region Getters
   public get commands(): ReadonlyMap<string, Command> {
     return this._commands;
   }
@@ -47,12 +33,7 @@ export class Interpreter {
   public get onRun(): ReadonlySignal<[CommandContext]> {
     return this._onRun.asReadonly();
   }
-  // #endregion
 
-  // #region Methods
-  /**
-   * Parses and executes a command based on the provided input array.
-   */
   public run(input: string[]): void {
     if (input.length === 0) {
       this._onRun.fire({ args: {}, flags: {}, options: {} });
@@ -60,33 +41,35 @@ export class Interpreter {
     }
 
     const [commandName, ...argumentsList] = input;
-    const command = this.getFromCommands(commandName);
+    const commandOption = this.getFromCommands(commandName);
 
-    if (!command) {
-      console.log(`Command "${commandName}" is not recognized.`);
-      const suggestion = this.findClosestCommand(commandName);
-      if (suggestion) console.log(`Did you mean "${suggestion}"?`);
-      return;
-    }
+    match(commandOption)
+      .with("Some", (option) => {
+        const command = option.value;
+        const context = this.parse(argumentsList, command.schema);
 
-    try {
-      const context = this.parse(argumentsList, command.schema);
-      const issues = this.lint(context, command.schema);
-
-      if (issues.length > 0) {
-        console.log(`To use "${commandName}", please provide the following:`);
-        issues.forEach((issue) => console.log(` - ${issue}`));
-        return;
-      }
-      command.run(context);
-    } catch (error) {
-      if (error instanceof Error) console.log(`Error: ${error.message}`);
-    }
+        match(this.lint(context, command.schema))
+          .with("Failure", (failure) => {
+            console.log(
+              `To use "${command.name}", please provide the following:`,
+            );
+            console.log(` - ${failure.error.message}`);
+          })
+          .with("Success", () => {
+            command.run(context);
+          })
+          .run();
+      })
+      .with("None", () => {
+        console.log(`Command "${commandName}" is not recognized.`);
+        match(this.findClosestCommand(commandName))
+          .with("Some", (opt) => console.log(`Did you mean "${opt.value}"?`))
+          .with("None", () => {})
+          .run();
+      })
+      .run();
   }
 
-  /**
-   * Parses raw input into a structured CommandContext.
-   */
   public parse(input: string[], schema: CommandSchema): CommandContext {
     const context: CommandContext = { args: {}, flags: {}, options: {} };
     let argumentIndex = 0;
@@ -96,69 +79,18 @@ export class Interpreter {
 
       if (token.startsWith("-")) {
         const name = token.replace(/^-+/, "");
-        const foundFlag = schema.flags.find(
-          (f) => f.name === name || f.alias === name,
-        );
         const foundOption = schema.options.find(
           (o) => o.name === name || o.alias === name,
+        );
+        const foundFlag = schema.flags.find(
+          (f) => f.name === name || f.alias === name,
         );
 
         if (foundFlag) {
           context.flags[foundFlag.name] = true;
         } else if (foundOption) {
           const rawValue = input[++i];
-          if (rawValue === undefined) {
-            throw new Error(`Option "${foundOption.name}" requires a value.`);
-          }
-
-          const cleanValue = rawValue.startsWith('"') && rawValue.endsWith('"')
-            ? rawValue.slice(1, -1)
-            : rawValue;
-          const parts = cleanValue.split(",");
-
-          if (
-            foundOption.limit &&
-            foundOption.limit > 0 &&
-            parts.length > foundOption.limit
-          ) {
-            throw new Error(
-              `Option "${foundOption.name}" allows a maximum of ${foundOption.limit} values.`,
-            );
-          }
-
-          const processedValues = parts.map((part) => {
-            if (foundOption.type === "number") {
-              const num = Number(part);
-              if (isNaN(num)) {
-                throw new Error(
-                  `Option "${foundOption.name}" expected a number, got "${part}"`,
-                );
-              }
-              if (
-                foundOption.minimum !== undefined &&
-                num < foundOption.minimum
-              ) {
-                throw new Error(
-                  `Option "${foundOption.name}" must be at least ${foundOption.minimum}`,
-                );
-              }
-              if (
-                foundOption.maximum !== undefined &&
-                num > foundOption.maximum
-              ) {
-                throw new Error(
-                  `Option "${foundOption.name}" must be no more than ${foundOption.maximum}`,
-                );
-              }
-              return num;
-            }
-            return part;
-          });
-
-          const limit = foundOption.limit ?? 1;
-          context.options[foundOption.name] = limit === 1
-            ? processedValues[0]
-            : processedValues;
+          context.options[foundOption.name] = rawValue;
         }
       } else if (argumentIndex < schema.arguments.length) {
         context.args[schema.arguments[argumentIndex].name] = token;
@@ -166,61 +98,73 @@ export class Interpreter {
       }
     }
 
-    for (const option of schema.options) {
-      if (
-        context.options[option.name] === undefined &&
-        option.default !== undefined
-      ) {
-        context.options[option.name] = option.default;
+    schema.options.forEach((o) => {
+      if (context.options[o.name] === undefined && o.default !== undefined) {
+        context.options[o.name] = o.default;
       }
-    }
+    });
 
     return context;
   }
 
-  /** Validates context against schema constraints. */
-  public lint(context: CommandContext, schema: CommandSchema): string[] {
+  public lint(
+    context: CommandContext,
+    schema: CommandSchema,
+  ): Result<void, Error> {
     const issues: string[] = [];
-    for (const argument of schema.arguments) {
-      if (context.args[argument.name] === undefined) {
-        issues.push(`Missing required argument: ${argument.name}`);
+
+    schema.options.forEach((opt) => {
+      const val = context.options[opt.name];
+
+      if (opt.required && val === undefined) {
+        issues.push(`Option --${opt.name} is required.`);
+        return;
       }
-    }
-    for (const option of schema.options) {
-      const value = context.options[option.name];
-      if (option.required && value === undefined) {
-        issues.push(`Missing required option: --${option.name}`);
-        continue;
-      }
-      if (value !== undefined) {
-        const values = Array.isArray(value) ? value : [value];
-        for (const v of values) {
-          if (option.type === "number") {
-            if (
-              option.minimum !== undefined &&
-              (v as number) < option.minimum
-            ) {
-              issues.push(
-                `Option --${option.name} must be >= ${option.minimum}`,
-              );
+
+      if (val !== undefined) {
+        const isNumeric = /^-?\d+(\.\d+)?(,-?\d+(\.\d+)?)*$/.test(
+          val as string,
+        );
+
+        // Si el esquema pide numero, validamos que sea numerico
+        if (opt.type === "number" && !isNumeric) {
+          issues.push(
+            `Option --${opt.name} expected number, but received string.`,
+          );
+          return;
+        }
+
+        // Si el esquema pide string, aceptamos TODO (incluyendo numeros)
+        const parts = (val as string).split(",");
+
+        if (opt.limit && parts.length > opt.limit) {
+          issues.push(
+            `Option --${opt.name} exceeds max limit of ${opt.limit}.`,
+          );
+          return;
+        }
+
+        if (opt.type === "number" && isNumeric) {
+          const numbers = parts.map(Number);
+          numbers.forEach((v) => {
+            if (opt.minimum !== undefined && v < opt.minimum) {
+              issues.push(`--${opt.name} ${v} < min ${opt.minimum}`);
             }
-            if (
-              option.maximum !== undefined &&
-              (v as number) > option.maximum
-            ) {
-              issues.push(
-                `Option --${option.name} must be <= ${option.maximum}`,
-              );
+            if (opt.maximum !== undefined && v > opt.maximum) {
+              issues.push(`--${opt.name} ${v} > max ${opt.maximum}`);
             }
-          }
+          });
         }
       }
-    }
-    return issues;
+    });
+
+    return issues.length > 0
+      ? failure(new Error(issues.join(" | ")))
+      : success(void 0);
   }
 
-  private findClosestCommand(input: string): string | null {
-    let closest = null;
+  private findClosestCommand(input: string): Option<string> {
+    let closest: string | null = null;
     let minDistance = 3;
     for (const name of this._commands.keys()) {
       const distance = this.levenshtein(input, name);
@@ -229,7 +173,7 @@ export class Interpreter {
         closest = name;
       }
     }
-    return closest;
+    return closest ? some(closest) : none();
   }
 
   private levenshtein(a: string, b: string): number {
@@ -248,17 +192,23 @@ export class Interpreter {
     return matrix[a.length][b.length];
   }
 
-  public addToCommands(command: Command) {
-    if (!this._commands.has(command.name)) {
-      this._commands.set(command.name, command);
+  public addToCommands(command: Command): Result<void, Error> {
+    if (this._commands.has(command.name)) {
+      return failure(new Error(`Command ${command.name} already exists.`));
     }
+    this._commands.set(command.name, command);
+    return success(void 0);
   }
 
-  public removeFromCommands(command: Command) {
+  public removeFromCommands(command: Command): Result<void, Error> {
+    if (!this._commands.has(command.name)) {
+      return failure(new Error(`Command ${command.name} not found.`));
+    }
     this._commands.delete(command.name);
+    return success(void 0);
   }
 
-  public getFromCommands(name: string): Command | undefined {
-    return this._commands.get(name);
+  public getFromCommands(name: string): Option<Command> {
+    return this._commands.has(name) ? some(this._commands.get(name)!) : none();
   }
 }
