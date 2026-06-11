@@ -71,8 +71,9 @@ export class Interpreter {
       .with("None", () => {
         console.log(`Command "${commandName}" is not recognized.`);
         match(this.findClosestCommand(commandName))
-          .with("Some", (option) =>
-            console.log(`Did you mean "${option.value}"?`),
+          .with(
+            "Some",
+            (option) => console.log(`Did you mean "${option.value}"?`),
           )
           .with("None", () => {})
           .run();
@@ -120,8 +121,9 @@ export class Interpreter {
           }
 
           const parts = rawValue.split(",");
-          const processed: (string | number)[] =
-            foundOption.type === "number" ? parts.map(Number) : parts;
+          const processed: (string | number)[] = foundOption.type === "number"
+            ? parts.map(Number)
+            : parts;
 
           if (foundOption.type === "number") {
             if ((processed as number[]).some(isNaN)) {
@@ -132,8 +134,9 @@ export class Interpreter {
           }
 
           const limit = foundOption.limit ?? 1;
-          context.options[foundOption.name] =
-            limit === 1 ? processed[0] : processed;
+          context.options[foundOption.name] = limit === 1
+            ? processed[0]
+            : processed;
         } else {
           return failure(new Error(`Unknown flag or option: ${token}`));
         }
@@ -155,8 +158,9 @@ export class Interpreter {
       ) {
         const def = option.default;
         const limit = option.limit ?? 1;
-        context.options[option.name] =
-          limit === 1 && Array.isArray(def) ? def[0] : def;
+        context.options[option.name] = limit === 1 && Array.isArray(def)
+          ? def[0]
+          : def;
       }
     });
 
