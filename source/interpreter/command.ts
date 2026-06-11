@@ -7,8 +7,6 @@ export interface Argument {
   name: string;
   /** Description of what the argument represents. */
   description: string;
-  /** Whether the argument must be provided. */
-  required: boolean;
 }
 
 /** Definition for a boolean flag (e.g., --verbose or -v). */
@@ -19,8 +17,6 @@ export interface Flag {
   alias?: string;
   /** Description of the flag's purpose. */
   description: string;
-  /** Whether the flag is mandatory. */
-  required: boolean;
 }
 
 /** Definition for an option that accepts a value (e.g., --port 8080). */
@@ -32,7 +28,7 @@ export interface Option {
   /** Description of the option. */
   description: string;
   /** Whether the option is mandatory. */
-  required: boolean;
+  required?: boolean;
   /** Expected data type of the option. */
   type: "string" | "number";
   /** Minimum value if type is number. */
