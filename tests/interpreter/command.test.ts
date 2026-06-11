@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import { Interpreter } from "../../source/index.ts";
 import { Command } from "../../source/index.ts";
 
-Deno.test("Command: Lifecycle and Signal", () => {
+Deno.test("Command: Lifecycle and Signal", async () => {
   const interpreter = new Interpreter({ name: "CLI" });
 
   const testCommand = new (class extends Command {
@@ -24,5 +24,6 @@ Deno.test("Command: Lifecycle and Signal", () => {
   testCommand.onRun.connect(() => runCount++);
 
   testCommand.run({ args: {}, flags: {}, options: {} });
+  await new Promise((resolve) => setTimeout(resolve, 0));
   assertEquals(runCount, 1);
 });
