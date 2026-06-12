@@ -1,6 +1,6 @@
 # Interpreter
 
-> Type-safe, modular, and object-oriented framework for building robust command-line applications.
+> Type-safe, modular, and object-oriented library for building robust command-line applications.
 
 ## Description
 
