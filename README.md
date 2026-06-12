@@ -4,7 +4,7 @@
 
 ## Description
 
-A powerful CLI framework built with TypeScript, designed to scale with your project's complexity. It provides a structured architecture to define commands, manage nested subcommands, and handle arguments with strict typing. By utilizing a signal-driven lifecycle and the Result pattern, it ensures your CLI tools remain predictable, maintainable, and highly resilient to malformed user input.
+A powerful command-line library built with TypeScript, designed to scale with your project's complexity. It provides a structured architecture to define commands, manage nested subcommands, and handle arguments with strict typing. By utilizing a signal-driven lifecycle and the Result pattern, it ensures your command-line tools remain predictable, maintainable, and highly resilient to malformed user input.
 
 ## Features
 
