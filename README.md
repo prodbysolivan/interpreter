@@ -1,74 +1,76 @@
 # Interpreter
+![Deno](https://img.shields.io/badge/deno-1.40%2B-black?logo=deno) [![JSR](https://jsr.io/badges/@prodbysolivan/interpreter)](https://jsr.io/@prodbysolivan/interpreter) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
-Type-safe library for building robust command-line applications.
+> Type-safe, modular, and object-oriented library for building robust command-line applications.
 
 ## Description
 
-A modular command-line library built for TypeScript. It provides a structured
-architecture to define commands, manage subcommands, and handle arguments with
-strict typing, enabling developers to build scalable command-line interfaces.
+A powerful command-line library built with TypeScript, designed to scale with your project's complexity. It provides a structured architecture to define commands, manage nested subcommands, and handle arguments with strict typing. By utilizing a signal-driven lifecycle and the Result pattern, it ensures your command-line tools remain predictable, maintainable, and highly resilient to malformed user input.
 
-### Dependencies
+## Features
 
-- Deno 1.40 or higher
-- [@prodbysolivan/signal](https://jsr.io/@prodbysolivan/signal)
-- [@prodbysolivan/match](https://jsr.io/@prodbysolivan/match)
-- [@prodbysolivan/result](https://jsr.io/@prodbysolivan/result)
-- [@prodbysolivan/option](https://jsr.io/@prodbysolivan/option)
+* **Object-Oriented Architecture**: Clean separation of concerns using a modular command-based structure.
+* **Strict Type Safety**: Deep type inference for options and arguments using TypeScript generics.
+* **Resilient Error Handling**: Built-in support for the `Result` pattern to eliminate risky `try/catch` blocks.
+* **Signal-Driven Lifecycle**: Reactive task execution powered by `@prodbysolivan/signal`.
+* **Proactive Validation**: Automatic detection of alias/identifier collisions at startup.
 
-### Installing
+## Getting Started
 
-Add the package to your project directly via JSR:
+### Prerequisites
+
+* [Deno 1.40 or higher](https://deno.land/)
+
+### Installation
 
 ```bash
 deno add @prodbysolivan/interpreter
 ```
 
-### Quick Usage
-
-Import the `Interpreter` or base `Command` classes into your project:
+## Quick Usage
 
 ```typescript
 import { Command, Interpreter } from "@prodbysolivan/interpreter";
 
-// Define a new command by extending the base Command class
 class GreetCommand extends Command {
   constructor(parent: Interpreter) {
-    // Register the command name and description with the parent interpreter
     super({ parent, name: "greet", description: "Say hello to someone" });
-
-    // Define the logic to execute when the command is triggered
     this.onRun.connect((context) => {
       console.log(`Hello, ${context.arguments.name}!`);
     });
   }
 }
 
-// Initialize the application interpreter
-const myInterpreter = new Interpreter();
-
-// Register the command and execute the interpreter with CLI arguments
-myInterpreter.addToCommands(new GreetCommand(myApp));
-myInterpreter.run(Deno.args);
+const myApp = new Interpreter();
+myApp.addToCommands(new GreetCommand(myApp));
+myApp.run(Deno.args);
 ```
 
-## Help
+## Documentation & Help
 
-For common issues regarding type definitions, ensure your `deno.json` is
-configured correctly and your project is using strict mode.
+### Ecosystem Dependencies
+
+* [@prodbysolivan/signal](https://jsr.io/@prodbysolivan/signal)
+* [@prodbysolivan/match](https://jsr.io/@prodbysolivan/match)
+* [@prodbysolivan/result](https://jsr.io/@prodbysolivan/result)
+* [@prodbysolivan/option](https://jsr.io/@prodbysolivan/option)
+
+### Troubleshooting
+
+* **Type Errors**: Ensure your `deno.json` has `strict` mode enabled.
+* **Execution Issues**: Verify that command aliases (`-`) and full flags (`--`) are correctly distinguished, as the interpreter enforces strict industry conventions.
+
+---
 
 ## Authors
 
-Solivan (prodbysolivan)
-
-[@solivan](https://github.com/prodbysolivan)
+* **Solivan** ([@solivan](https://github.com/prodbysolivan))
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for
-details.
+This project is licensed under the MIT License - see the `LICENSE` file for details.
 
 ## Acknowledgments
 
-- [Deno Documentation](https://docs.deno.com/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+* [Deno Documentation](https://docs.deno.com/)
+* [TypeScript Handbook](https://www.typescriptlang.org/docs/)
